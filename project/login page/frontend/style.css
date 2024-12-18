@@ -1,0 +1,73 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+.error{
+    color: red;
+    border-color: red;
+}
+.success{
+    text-align: center;
+}
+.company{
+    height: 100vh;
+    background-color: rgb(163, 255, 224);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.circle{
+    width: 100px;
+    height: 100px;
+    border: 2px solid black;
+    border-radius: 50%;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+.companyInfo{
+    align-items: center;
+    justify-content: center;
+}
+.login{
+    height: 100vh;
+    background-color: rgb(255, 242, 224);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.loginFields{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+h2{
+    margin-bottom: 20px;
+}
+a{
+    margin-top: 20px;
+}
+#header{
+    background-color: rgb(230, 210, 183);
+    padding-bottom: 10px;
+}
+#form{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    position: relative;
+    min-height: 650px;
+    background-color: rgb(163, 255, 224);
+}
+#google{
+    background-color: rgb(255, 242, 224);
+}
+#register{
+    height: 70vh;
+    width: 80%;
+}
