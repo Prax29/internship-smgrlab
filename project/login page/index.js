@@ -6,15 +6,27 @@ import pg from "pg";
 import bcrypt from 'bcrypt';
 import svgCaptcha from 'svg-captcha';
 import fs from "fs";
+import session from "express-session";
 const saltRounds=10;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app=express();
 app.use(bodyParser.urlencoded({extended:true}));
-app.use(express.static(__dirname + '/frontend'));
+app.use(express.static(__dirname + '/public'));
 const port=3000;
 app.listen(port, ()=>{
     console.log(`Server running on port no. ${port}!`);
 });
+app.use(
+  session({
+    secret : ".Gmailcom@",
+    resave : false,
+    saveUninitialized : false,
+    cookie : {
+      maxAge : 60000,
+      httpOnly : true
+    }
+  })
+);
 app.get("/", (req, res) => {
   let captcha = svgCaptcha.create({
       size : 6,
@@ -42,6 +54,28 @@ app.get("/register", (req, res)=>{
     text : captcha.text
   });
 });
+const isLogged = (req, res, next)=>{
+  if(req.session.user){
+    next();
+  }
+  else{
+    res.redirect("/login");
+  }
+};
+app.get("/success", isLogged, (req, res)=>{
+  const action = req.session.action;
+  res.render("success.ejs",{
+    action : action
+  });
+});
+app.post("/logout", (req, res)=>{
+  req.session.destroy((err)=>{
+    if(err){
+      console.log(err);
+    }
+    res.redirect("/login");
+  })
+})
 //database
 const db = new pg.Client({
     user: "postgres",
@@ -86,9 +120,7 @@ app.post("/register", (req, res)=>{
               console.error("Error executing query", err.stack);
             } else {
               console.log("Entered successfully!");
-              res.render("success.ejs",{
-                action : "Registration"
-              })
+              res.redirect("/success");
               console.log(values);
             }
           });
@@ -117,9 +149,9 @@ app.post("/login", (req, res)=>{
             pError=false;
             // errorType=0;
             // console.log(result.rows[i].pass);
-            res.render("success.ejs",{
-              action : "Login"
-            })
+            req.session.user = { email };
+            req.session.action = "Login";
+            res.redirect("/success");
           }
         }
       }

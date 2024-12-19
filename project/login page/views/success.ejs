@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal</title>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body class="success">
     <h1><%= action %> successful!</h1>
-    <a href="/login"><button>Logout</button></a>
+    <form action="/logout" method="post">
+        <button type="submit">Logout</button>
+    </form>
 </body>
 </html>
