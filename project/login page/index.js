@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 import svgCaptcha from 'svg-captcha';
 import fs from "fs";
 import session from "express-session";
+import config from './config.js';
 const saltRounds=10;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app=express();
@@ -18,7 +19,7 @@ app.listen(port, ()=>{
 });
 app.use(
   session({
-    secret : ".Gmailcom@",
+    secret : config.sessionSecret,
     resave : false,
     saveUninitialized : false,
     cookie : {
@@ -78,17 +79,18 @@ app.post("/logout", (req, res)=>{
 })
 //database
 const db = new pg.Client({
-    user: "postgres",
-    host: "localhost",
-    database: "login",
-    password: "db.pranav29",
-    port: 5432,
+    user: config.dbUser,
+    host: config.dbHost,
+    database: config.dbName,
+    password: config.dbPassword,
+    port: config.dbPort,
   });
   db.connect();
 //registration
 app.post("/register", (req, res)=>{
     const {username, email, password, mobile, role} = req.body;
-    const query2 = "SELECT email from users";
+    const query2 = 'SELECT email FROM users WHERE email=($1)';
+    const values = [email];
     let unique=true;
     let captcha = svgCaptcha.create({
       size : 6,
@@ -96,20 +98,18 @@ app.post("/register", (req, res)=>{
       color : true,
       background :"#fafafa"
     });
-    db.query(query2, (err, result1)=>{
+    db.query(query2, values, (err, result1)=>{
       if(err){
         console.log("Error executing query", err.stack);
       }
       else{
-        for(var i=0;i<result1.rows.length;i++){
-          if(result1.rows[i].email===email){
+          if(result1.rows.length!==0){
             unique = false;
             return res.render("index.ejs",{
               error : 1,
               captcha : captcha.data,
               text : captcha.text
             });
-          }
         }
         if(unique){
           const hash = bcrypt.hashSync(password, saltRounds);
@@ -119,8 +119,10 @@ app.post("/register", (req, res)=>{
             if (err) {
               console.error("Error executing query", err.stack);
             } else {
-              console.log("Entered successfully!");
+              req.session.user = { email };
+              req.session.action = "Registered";
               res.redirect("/success");
+              console.log("Entered successfully!");
               console.log(values);
             }
           });
@@ -131,21 +133,21 @@ app.post("/register", (req, res)=>{
 //login
 app.post("/login", (req, res)=>{
   const {email, password} = req.body;
-  const query = "SELECT email,pass from users";
+  const query = 'SELECT email, pass FROM users WHERE email=($1)';
+  const values = [email];
   let eError = true;
   let pError = true;
   // let errorType = 0;
-  db.query(query, (err, result)=>{
+  db.query(query, values, (err, result)=>{
     if(err){
       console.log("Error executing query", err.stack);
     }
     else{
-      for(var i=0;i<result.rows.length;i++){
-        if(result.rows[i].email===email){
+        if(result.rows.length!==0){
           eError=false;
           // console.log(result.rows[i].email);
 
-          if(bcrypt.compareSync(password, result.rows[i].pass)){
+          if(bcrypt.compareSync(password, result.rows[0].pass)){
             pError=false;
             // errorType=0;
             // console.log(result.rows[i].pass);
@@ -154,7 +156,6 @@ app.post("/login", (req, res)=>{
             res.redirect("/success");
           }
         }
-      }
       if(eError){
         // errorType=1;
         return res.render("login.ejs",{
@@ -168,6 +169,5 @@ app.post("/login", (req, res)=>{
         });
       }
     }
-    db.end();
   });
 });
